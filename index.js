@@ -3,15 +3,15 @@ const { Firestore }       = require('@google-cloud/firestore');
 const { CloudRunClient }  = require('@google-cloud/run');
 const axios               = require('axios');
 
-const firestore      = new Firestore();
-const runClient      = new CloudRunClient();
+const firestore           = new Firestore();
+const runClient           = new CloudRunClient();
 
-const PROJECT_ID     = 'evergreen-45696013';
-const REGION         = 'us-east1';
-const JOB_NAME       = 'sftp-fetch-job';
-const RUNS_COLLECTION= 'imports';
-const HUBSPOT_API_KEY= process.env.HUBSPOT_API_KEY;
-const HUBSPOT_STATUS_URL = 'https://api.hubapi.com/crm/v3/imports'; 
+const PROJECT_ID          = 'evergreen-45696013';
+const REGION              = 'us-central1';
+const JOB_NAME            = 'importer-job';
+const RUNS_COLLECTION     = 'imports';
+const HUBSPOT_API_KEY     = process.env.HUBSPOT_API_KEY;
+const HUBSPOT_STATUS_URL  = 'https://api.hubapi.com/crm/v3/imports'; 
 
 // Batch definitions
 const BATCH_FILES = {
