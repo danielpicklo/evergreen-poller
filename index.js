@@ -1,9 +1,12 @@
 // pollAndChain.js
 const { Firestore }       = require('@google-cloud/firestore');
-const { JobsClient }  = require('@google-cloud/run');
+const { JobsClient }      = require('@google-cloud/run');
 const axios               = require('axios');
 
-const firestore           = new Firestore();
+const firestore           = new Firestore({
+  projectId: 'evergreen-45696013',
+  databaseId: 'imports'
+});
 const runClient           = new JobsClient();
 
 const PROJECT_ID          = 'evergreen-45696013';
