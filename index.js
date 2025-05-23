@@ -73,8 +73,8 @@ async function main() {
           const jobPath = `${parent}/jobs/${JOB_NAME}`;
 
           console.log('Running Job:', nextBatch)
-          
-          await runClient.runJob({
+
+          const request = {
             name: jobPath,
             execution: {
               template: {
@@ -84,7 +84,21 @@ async function main() {
                 }]
               }
             }
-          });
+          };
+          console.log("Running job with request:", JSON.stringify(request, null, 2));
+          await runClient.runJob(request);
+          
+          /*await runClient.runJob({
+            name: jobPath,
+            execution: {
+              template: {
+                containers: [{
+                  image: `gcr.io/${PROJECT_ID}/${JOB_NAME}:latest`,
+                  args: [`--runId=${runId}`, `--batchNum=${nextBatch}`]
+                }]
+              }
+            }
+          });*/
         } else {
           console.log(`✔ All batches complete for run ${runId}`);
         }
