@@ -42,66 +42,38 @@ async function main() {
     if (!batch || batch.status !== 'in_progress' || !batch.importId) continue;
 
     // 1) Poll HubSpot
-    const importId = batch.importId;
     let resp;
     try {
-      resp = await axios.get(`${HUBSPOT_STATUS_URL}/${importId}`, {
+      resp = await axios.get(`${HUBSPOT_STATUS_URL}/${batch.importId}`, {
         headers: { Authorization: `Bearer ${HUBSPOT_API_KEY}` }
       });
     } catch (e) {
-      console.error(`Error polling import ${importId}:`, e);
+      console.error(`Error polling import ${batch.importId}:`, e);
       continue;
     }
-    const state = resp.data.state; // e.g. "IN_PROGRESS", "DONE", "FAILED"
 
+    const state = resp.data.state;  // "IN_PROGRESS" | "DONE" | "FAILED"
     if (state === 'DONE' || state === 'FAILED') {
-      const newStatus = state === 'DONE' ? 'complete' : 'failed';
-      console.log(`Run ${runId} batch${batchNum} is ${newStatus}`);
+      // 2) Update Firestore: mark batch complete AND bump currentBatch
+      const nextBatch = batchNum + 1;
+      console.log(`Run ${runId} batch${batchNum} is ${state}; bumping to batch${nextBatch}`);
 
-      // 2) Update Firestore
       await firestore.collection(RUNS_COLLECTION).doc(runId).update({
-        [`batches.${batchKey}.status`]: newStatus,
-        [`batches.${batchKey}.updatedAt`]: Firestore.FieldValue.serverTimestamp()
+        // mark this batch status
+        [`batches.${batchKey}.status`]: state === 'DONE' ? 'complete' : 'failed',
+        // atomically increment currentBatch
+        currentBatch: FieldValue.increment(1),
+        // record timestamp
+        [`batches.${batchKey}.updatedAt`]: FieldValue.serverTimestamp()
       });
 
-      // 3) If done, chain next batch
-      if (newStatus === 'complete') {
-        const nextBatch = batchNum + 1;
-        if (BATCH_FILES[nextBatch]) {
-          console.log(`→ Launching batch${nextBatch} for run ${runId}`);
-          const parent  = `projects/${PROJECT_ID}/locations/${REGION}`;
-          const jobPath = `${parent}/jobs/${JOB_NAME}`;
-
-          console.log('Running Job:', nextBatch)
-
-          const request = {
-            name: jobPath,
-            execution: {
-              template: {
-                containers: [{
-                  image: `gcr.io/${PROJECT_ID}/${JOB_NAME}:latest`,
-                  args: [`--runId=${runId}`, `--batchNum=${nextBatch}`]
-                }]
-              }
-            }
-          };
-          console.log("Running job with request:", JSON.stringify(request, null, 2));
-          await runClient.runJob(request);
-          
-          /*await runClient.runJob({
-            name: jobPath,
-            execution: {
-              template: {
-                containers: [{
-                  image: `gcr.io/${PROJECT_ID}/${JOB_NAME}:latest`,
-                  args: [`--runId=${runId}`, `--batchNum=${nextBatch}`]
-                }]
-              }
-            }
-          });*/
-        } else {
-          console.log(`✔ All batches complete for run ${runId}`);
-        }
+      // 3) If we still have another batch to run, launch the importer Job
+      if (data.batches[`batch${nextBatch}`]) {
+        const jobPath = `projects/${PROJECT_ID}/locations/${REGION}/jobs/${IMPORTER_JOB}`;
+        console.log(`→ launching importer job for run ${runId}, batch ${nextBatch}`);
+        await runClient.runJob({ name: jobPath });
+      } else {
+        console.log(`✔ All batches complete for run ${runId}`);
       }
     }
   }
