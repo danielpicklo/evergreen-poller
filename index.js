@@ -69,7 +69,7 @@ async function main() {
 
       // 3) If we still have another batch to run, launch the importer Job
       if (data.batches[`batch${nextBatch}`]) {
-        const jobPath = `projects/${PROJECT_ID}/locations/${REGION}/jobs/${IMPORTER_JOB}`;
+        const jobPath = `projects/${PROJECT_ID}/locations/${REGION}/jobs/${JOB_NAME}`;
         console.log(`→ launching importer job for run ${runId}, batch ${nextBatch}`);
         await runClient.runJob({ name: jobPath });
       } else {
