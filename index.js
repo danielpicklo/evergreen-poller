@@ -1,6 +1,6 @@
 // pollAndChain.js
 const { Firestore }       = require('@google-cloud/firestore');
-const { JobsClient }      = require('@google-cloud/run');
+const { JobsClient }      = require('@google-cloud/run').v2;
 const axios               = require('axios');
 
 const firestore           = new Firestore({
