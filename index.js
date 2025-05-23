@@ -20,7 +20,12 @@ const BATCH_FILES = {
   3: ['test2']
 };
 
-exports.pollAndChain = async (pubsubEvent, context) => {
+console.log('Deploying')
+
+async function main() {
+
+  console.log('Initializing')
+  
   const runsSnap = await firestore.collection(RUNS_COLLECTION)
     .where('batches', '!=', null)
     .get();
@@ -64,6 +69,8 @@ exports.pollAndChain = async (pubsubEvent, context) => {
           const parent  = `projects/${PROJECT_ID}/locations/${REGION}`;
           const jobPath = `${parent}/jobs/${JOB_NAME}`;
 
+          console.log('Running Job:', nextBatch)
+          
           await runClient.runJob({
             name: jobPath,
             execution: {
@@ -82,3 +89,5 @@ exports.pollAndChain = async (pubsubEvent, context) => {
     }
   }
 };
+
+main()
