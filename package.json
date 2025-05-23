@@ -10,7 +10,8 @@
     "description": "",
     "dependencies": {
       "axios": "^1.7.7",
-      "@google-cloud/firestore": "^6.0.0"
+      "@google-cloud/firestore": "^6.0.0",
+      "@google-cloud/run": "^2.0.0"
     }
   }
   
