@@ -4,7 +4,7 @@ const { CloudRunClient }  = require('@google-cloud/run');
 const axios               = require('axios');
 
 const firestore           = new Firestore();
-const runClient           = new CloudRunClient();
+const runClient           = new JobsClient();
 
 const PROJECT_ID          = 'evergreen-45696013';
 const REGION              = 'us-central1';
@@ -15,9 +15,9 @@ const HUBSPOT_STATUS_URL  = 'https://api.hubapi.com/crm/v3/imports';
 
 // Batch definitions
 const BATCH_FILES = {
-  1: ['test0', 'test1'],
-  2: ['test2'],
-  3: ['test0', 'test2']
+  1: ['test0'],
+  2: ['test1'],
+  3: ['test2']
 };
 
 exports.pollAndChain = async (pubsubEvent, context) => {
