@@ -69,9 +69,28 @@ async function main() {
 
       // 3) If we still have another batch to run, launch the importer Job
       if (data.batches[`batch${nextBatch}`]) {
-        const jobPath = `projects/${PROJECT_ID}/locations/${REGION}/jobs/${JOB_NAME}`;
+        //const jobPath = `projects/${PROJECT_ID}/locations/${REGION}/jobs/${JOB_NAME}`;
         console.log(`→ launching importer job for run ${runId}, batch ${nextBatch}`);
-        await runClient.runJob({ name: jobPath });
+        
+        const parent  = `projects/${PROJECT_ID}/locations/${REGION}`;
+        const jobPath = `${parent}/jobs/${JOB_NAME}`;
+
+        console.log('Running Job:', nextBatch)
+
+        const request = {
+          name: jobPath,
+          execution: {
+            template: {
+              containers: [{
+                image: `gcr.io/${PROJECT_ID}/${JOB_NAME}:latest`,
+                args: [`--runId=${runId}`, `--batchNum=${nextBatch}`]
+              }]
+            }
+          }
+        };
+        console.log("Running job with request:", JSON.stringify(request, null, 2));
+        await runClient.runJob(request);
+        
       } else {
         console.log(`✔ All batches complete for run ${runId}`);
       }
